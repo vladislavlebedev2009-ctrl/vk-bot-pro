@@ -1,0 +1,57 @@
+### IntelliJ IDEA ###
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+.kotlin
+*.iml
+.idea/libraries/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Maven ###
+target/
+mvnw
+
+### Секреты ###
+.env
+
+### Данные и логи бота ###
+*.db
+*.db-wal
+*.db-shm
+*.log
+bot-log.txt
+logs/
+
+### Временные/резервные файлы ###
+*.bak
+*.tmp
+*.old
+*~
+*.swp
+backup*/
+*.orig
+*.rej
