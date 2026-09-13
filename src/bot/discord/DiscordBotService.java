@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -167,17 +168,28 @@ public class DiscordBotService {
                                             GatewayIntent.class
                                     )
                             )
+                            .setMemberCachePolicy(
+                                    MemberCachePolicy.NONE
+                            )
                             .build();
 
         } catch (
                 Exception e
         ) {
 
+            /*
+             * ВРЕМЕННАЯ ДИАГНОСТИКА: в bot-log.txt пишется точный класс
+             * исключения, getMessage(), причина (cause) и stack trace,
+             * чтобы понять, почему инициализация JDA не удалась. Токен
+             * (DISCORD_TOKEN) и значения окружения сюда не попадают.
+             */
             logger.error(
                     "Не удалось инициализировать Discord "
                             + "(проверь DISCORD_TOKEN). "
-                            + "VK-бот продолжает работать.",
-                    e
+                            + "VK-бот продолжает работать.\n"
+                            + describeException(
+                            e
+                    )
             );
 
             return;
@@ -269,6 +281,102 @@ public class DiscordBotService {
 
         started =
                 true;
+    }
+
+
+    /**
+     * Форматирует исключение со всей цепочкой причин (cause) и полными
+     * stack trace для каждого уровня. Используется только для временной
+     * диагностики, токены и переменные окружения не логируются.
+     */
+    private static String describeException(
+            Throwable throwable
+    ) {
+
+        StringBuilder builder =
+                new StringBuilder();
+
+        Throwable current =
+                throwable;
+
+        boolean first =
+                true;
+
+        int depth =
+                0;
+
+        while (
+                current != null
+                        && depth < 20
+        ) {
+
+            if (
+                    !first
+            ) {
+
+                builder.append(
+                        System.lineSeparator()
+                );
+
+                builder.append(
+                        "Caused by: "
+                );
+            }
+
+            builder.append(
+                    current.getClass()
+                            .getName()
+            );
+
+            String message =
+                    current.getMessage();
+
+            if (
+                    message != null
+                            && !message.isBlank()
+            ) {
+
+                builder.append(
+                        ": "
+                );
+
+                builder.append(
+                        message
+                );
+            }
+
+            builder.append(
+                    System.lineSeparator()
+            );
+
+            for (
+                    StackTraceElement element :
+                    current.getStackTrace()
+            ) {
+
+                builder.append(
+                        "    at "
+                );
+
+                builder.append(
+                        element
+                );
+
+                builder.append(
+                        System.lineSeparator()
+                );
+            }
+
+            current =
+                    current.getCause();
+
+            first =
+                    false;
+
+            depth++;
+        }
+
+        return builder.toString();
     }
 
 
