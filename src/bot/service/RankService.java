@@ -82,6 +82,7 @@ public final class RankService {
                  "rank",
                  "ranks",
                  "connect",
+                 "link",
                  "register",
                  "start",
                  "help",

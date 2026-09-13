@@ -6,11 +6,14 @@ import bot.config.BotConfig;
 import bot.database.AuditRepository;
 import bot.database.ChatRepository;
 import bot.database.Database;
+import bot.database.LinkRepository;
 import bot.database.PunishmentRepository;
 import bot.database.UserRepository;
+import bot.discord.DiscordBotService;
 import bot.longpoll.LongPollClient;
 import bot.service.AccessControlService;
 import bot.service.CommandRateLimiter;
+import bot.service.LinkService;
 import bot.service.Logger;
 import bot.service.MessageProcessingService;
 import bot.service.PunishmentService;
@@ -134,6 +137,42 @@ public class Main {
 
 
             /*
+             * ACCOUNT LINKS (VK ↔ Discord)
+             */
+
+            LinkRepository linkRepository =
+                    new LinkRepository(
+                            new Database(
+                                    config.getDatabaseFile()
+                            )
+                    );
+
+            linkRepository.init();
+
+
+            logger.info(
+                    "База связей VK ↔ Discord инициализирована"
+            );
+
+
+            /*
+             * LINK SERVICE
+             */
+
+            LinkService linkService =
+                    new LinkService(
+                            linkRepository,
+                            userRepository,
+                            auditRepository
+                    );
+
+
+            logger.info(
+                    "Сервис привязки Discord запущен"
+            );
+
+
+            /*
              * REGISTRATION SERVICE
              */
 
@@ -219,7 +258,8 @@ public class Main {
                             auditRepository,
                             config,
                             accessControl,
-                            rateLimiter
+                            rateLimiter,
+                            linkService
                     );
 
 
@@ -271,6 +311,26 @@ public class Main {
             );
 
 
+            /*
+             * DISCORD (попутный сервис; любые его ошибки
+             * не останавливают VK-бота)
+             */
+
+            DiscordBotService discordBot =
+                    new DiscordBotService(
+                            config,
+                            linkService,
+                            userRepository,
+                            punishmentRepository,
+                            auditRepository,
+                            chatRepository,
+                            registrationService,
+                            accessControl
+                    );
+
+            discordBot.start();
+
+
             Runtime.getRuntime()
                     .addShutdownHook(
                             new Thread(
@@ -279,6 +339,8 @@ public class Main {
                                         longPollClient.stop();
 
                                         punishmentService.stop();
+
+                                        discordBot.stop();
                                     }
                             )
                     );

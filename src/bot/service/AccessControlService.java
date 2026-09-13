@@ -63,6 +63,33 @@ public class AccessControlService {
     }
 
 
+    /** Проверка права (permission) по званию, без CommandContext.
+     *  Используется Discord-ботом для проверок через ту же матрицу прав. */
+    public boolean canUse(
+            long userId,
+            Rank rank,
+            String permission
+    ) {
+
+        if (
+                isPatron(
+                        userId
+                )
+        ) {
+
+            return true;
+        }
+
+        return rank != null
+                && RankService.canUse(
+                userId,
+                rank,
+                permission,
+                config
+        );
+    }
+
+
     /**
      * Проверка, что актор имеет право на команду (permission).
      * При отказе пользователю отправляется понятное сообщение.

@@ -1,8 +1,10 @@
 # VK BOT PRO 2.0
 
-Автономный VK-бот для «Клуба имени Иосифа Сталина» (Long Poll, без веб-панели).
+Автономный VK-бот для «Клуба имени Иосифа Сталина» (Long Poll, без веб-панели)
+с попутным Discord-ботом (JDA, slash-команды). Обе платформы работают с одной
+базой, званиями и правами.
 
-Java 17+, SQLite, VK Long Poll API.
+Java 17+, SQLite, VK Long Poll API, Discord JDA.
 
 ---
 
@@ -14,6 +16,11 @@ Java 17+, SQLite, VK Long Poll API.
 VK_TOKEN=токен сообщества VK
 VK_GROUP_ID=ID группы
 VK_PATRON_ID=VK ID владельца (Вождь клуба)
+
+# Discord (опционально):
+DISCORD_ENABLED=false
+DISCORD_TOKEN=токен Discord-бота
+DISCORD_GUILD_ID=ID сервера Discord
 ```
 
 2. Соберите проект:
@@ -44,7 +51,7 @@ VK_ADMIN_COMMAND_COOLDOWN_SEC=1  # администраторы
 - Файл создаётся автоматически при первом запуске (путь задаётся в `.env`,
   переменная `VK_DB_PATH`).
 - Таблицы: `users`, `chats`, `punishments`, `audit_log`, `rep_changes`,
-  `balance_history`.
+  `balance_history`, `account_links` (связка VK ↔ Discord, 1:1 в обе стороны).
 
 Логирование происходит в `bot-log.txt`. Пароли и токены не логируются.
 
@@ -128,18 +135,56 @@ VK_ADMIN_COMMAND_COOLDOWN_SEC=1  # администраторы
 
 ---
 
+## Discord-бот
+
+Попутный сервис: включает `DISCORD_ENABLED=true`, токен и ID сервера бот
+берёт только из окружения (`DISCORD_TOKEN`, `DISCORD_GUILD_ID`). При любой
+ошибке Discord (нет токена, неверный токен, нет связи с Gateway, rate limit)
+VK-бот продолжает работать — запись об этом уходит в `bot-log.txt`.
+Интент Message Content не используется, только slash-команды.
+
+### Привязка профиля
+
+Discord ID и VK ID это разные идентификаторы, поэтому их нужно связать
+(строго 1:1 в обе стороны, одноразово):
+
+1. В VK-боте выполните `/link` — бот выдаст одноразовый код (действует 15 минут).
+2. В Discord выполните `/link <код>` — Discord привяжется к вашему VK-профилю.
+3. Повторная привязка невозможна: у одного VK и одного Discord только один общий профиль.
+
+### Slash-команды
+
+Все команды работают с общей базой VK-бота, права проверяются по званию клуба.
+
+| Команда | Назначение | Права |
+| --- | --- | --- |
+| `/help` | Справка по командам | все |
+| `/register` | Статус регистрации твоего профиля | все |
+| `/link <код>` | Привязать Discord к VK-профилю | все |
+| `/profile` | Карточка твоего профиля | с 1 уровня |
+| `/rank` | Твоё звание | с 1 уровня |
+| `/ranks` | Все звания клуба | с 1 уровня |
+| `/balance` | Твой баланс | с 1 уровня |
+| `/top` | TOP по репутации | с 1 уровня |
+| `/history` | История и журнал действий по твоему профилю | с 4 уровня |
+| `/stats` | Статистика клуба | с 8 уровня |
+
+---
+
 ## Структура проекта
 
 ```
 src/bot
-├── Main.java                  Точка входа бота (Long Poll)
+├── Main.java                  Точка входа (Long Poll + Discord)
 ├── config/                    BotConfig, Environment (чтение .env)
 ├── model/                     User, Rank, Punishment, AuditEntry и т.д.
 ├── api/                       VkApi (вызовы VK API)
-├── database/                  SQLite-репозитории (User, Chat, Punishment, Audit)
-├── service/                   Registration, MessageProcessing, RateLimiter,
-│                              PunishmentService, AccessControl, RankService,
-│                              Logger, VkCommunityService
+├── database/                  SQLite-репозитории (User, Chat, Punishment,
+│                              Audit, LinkRepository и др.)
+├── discord/                   DiscordBotService (JDA) и обработчик slash-команд
+├── service/                   Registration, MessageProcessing, LinkService,
+│                              RateLimiter, PunishmentService, AccessControl,
+│                              RankService, Logger, VkCommunityService
 ├── util/                      Text (форматирование чисел и дат)
 └── command/                   CommandDispatcher, CommandContext и команды
 ```

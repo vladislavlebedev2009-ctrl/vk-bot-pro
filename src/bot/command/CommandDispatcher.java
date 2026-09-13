@@ -7,6 +7,7 @@ import bot.command.commands.ConnectCommand;
 import bot.command.commands.DisconnectCommand;
 import bot.command.commands.HelpCommand;
 import bot.command.commands.HistoryCommand;
+import bot.command.commands.LinkCommand;
 import bot.command.commands.ModerationCommand;
 import bot.command.commands.PayCommand;
 import bot.command.commands.PingCommand;
@@ -30,6 +31,7 @@ import bot.model.Rank;
 import bot.model.User;
 import bot.service.AccessControlService;
 import bot.service.CommandRateLimiter;
+import bot.service.LinkService;
 import bot.service.Logger;
 import bot.service.RegistrationService;
 import bot.service.VkCommunityService;
@@ -60,6 +62,8 @@ public class CommandDispatcher {
 
     private final CommandRateLimiter rateLimiter;
 
+    private final LinkService linkService;
+
     private final BotConfig config;
 
     private final Map<String, Command> commands =
@@ -81,7 +85,8 @@ public class CommandDispatcher {
             AuditRepository auditRepository,
             BotConfig config,
             AccessControlService accessControl,
-            CommandRateLimiter rateLimiter
+            CommandRateLimiter rateLimiter,
+            LinkService linkService
     ) {
 
         this.vkApi =
@@ -113,6 +118,9 @@ public class CommandDispatcher {
 
         this.rateLimiter =
                 rateLimiter;
+
+        this.linkService =
+                linkService;
 
         registerCommands();
     }
@@ -218,6 +226,13 @@ public class CommandDispatcher {
 
         register(
                 new HistoryCommand()
+        );
+
+
+        register(
+                new LinkCommand(
+                        linkService
+                )
         );
 
 

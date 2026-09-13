@@ -54,6 +54,34 @@
 
         </dependency>
 
+        <!-- Discord (JDA). Включается переменной DISCORD_ENABLED,
+             токен читается только из окружения DISCORD_TOKEN. -->
+        <dependency>
+
+            <groupId>net.dv8tion</groupId>
+
+            <artifactId>JDA</artifactId>
+
+            <version>
+                5.3.0
+            </version>
+
+        </dependency>
+
+        <!-- Биндинг SLF4J для JDA: уровень по умолчанию выставляется
+             в warn (см. DiscordBotService), чтобы не засорять лог. -->
+        <dependency>
+
+            <groupId>org.slf4j</groupId>
+
+            <artifactId>slf4j-simple</artifactId>
+
+            <version>
+                1.7.36
+            </version>
+
+        </dependency>
+
     </dependencies>
 
     <build>

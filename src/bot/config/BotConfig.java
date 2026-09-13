@@ -50,6 +50,14 @@ public class BotConfig {
 
     private final long adminCommandCooldownMillis;
 
+    /* === Discord (JDA) === */
+
+    private final boolean discordEnabled;
+
+    private final String discordToken;
+
+    private final long discordGuildId;
+
 
     public BotConfig() {
 
@@ -161,6 +169,23 @@ public class BotConfig {
                         "VK_ADMIN_COMMAND_COOLDOWN_SEC",
                         1L
                 ) * 1000L;
+
+        this.discordEnabled =
+                parseBoolean(
+                        "DISCORD_ENABLED",
+                        false
+                );
+
+        this.discordToken =
+                Environment.get(
+                        "DISCORD_TOKEN"
+                );
+
+        this.discordGuildId =
+                parsePositiveLong(
+                        "DISCORD_GUILD_ID",
+                        0L
+                );
     }
 
     public boolean hasToken() {
@@ -261,6 +286,29 @@ public class BotConfig {
         return adminCommandCooldownMillis;
     }
 
+    /* === Discord (JDA) === */
+
+    public boolean isDiscordEnabled() {
+
+        return discordEnabled;
+    }
+
+    public String getDiscordToken() {
+
+        return discordToken;
+    }
+
+    public boolean hasDiscordToken() {
+
+        return discordToken != null
+                && !discordToken.isBlank();
+    }
+
+    public long getDiscordGuildId() {
+
+        return discordGuildId;
+    }
+
     /* === helpers === */
 
     private static String defaultString(
@@ -355,5 +403,33 @@ public class BotConfig {
 
             return defaultValue;
         }
+    }
+
+    private static boolean parseBoolean(
+            String key,
+            boolean defaultValue
+    ) {
+
+        String value =
+                Environment.get(
+                        key
+                );
+
+        if (
+                value == null
+                        || value.isBlank()
+        ) {
+
+            return defaultValue;
+        }
+
+        String normalized =
+                value.trim()
+                        .toLowerCase();
+
+        return "true".equals(normalized)
+                || "1".equals(normalized)
+                || "yes".equals(normalized)
+                || "on".equals(normalized);
     }
 }
